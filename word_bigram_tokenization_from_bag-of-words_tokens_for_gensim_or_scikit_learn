@@ -1,0 +1,37 @@
+#A variant of the gensim and scikit-learn oocuments tokenization procedure: converts bag-of-word tokens into word bigram tokens (stemmed, depunctuated, and stoplisted).
+#The Python code here converts the single-word tokens into 2-tuples which are then converted into a nested list of whitespace-separated two-word string tokens,
+#which are usable in subsequent vectorization and document comparison steps in Gensim, scikit-learn, and other text-mining and document comparison modules and systems.
+#Useful for preserving some contextual information in subseuqent TF-IDF, LSA, and other document comparison models returning results 
+#in cosine similarity form. This uses the simple documents list from Radim Rehurek's 1st Gensim tutorial: https://radimrehurek.com/gensim/tut1.html
+#for reference; the code will return word-bigram tokens for any input collection of documents in the form of a list of strings, akin to the 
+#the documents list below from Radim's excellent gensim tutorial (these documents themselves drawn from the seminal Deerwester et al. article on LSA).
+#Additional dependencies for this version besides standard Python library: gensim
+
+from gensim import corpora
+import nltk, string
+from nltk import bigrams
+from nltk.corpus import stopwords
+stoplist = set(stopwords.words('english'))
+stemmer = nltk.stem.porter.PorterStemmer()
+remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
+def stem_tokens(tokens):
+    return [stemmer.stem(item) for item in tokens]
+def normalize(text): #returns list of stemmed, lowercase, depunctuated single-word strings -- i.e. tokens -- from an input string 
+    return stem_tokens(nltk.word_tokenize(text.lower().translate(remove_punctuation_map)))
+
+documents = ["Human machine interface for lab abc computer applications", #from Radin Rehurek's first Gensim tutorial
+             "A survey of user opinion of computer system response time",
+             "The EPS user interface management system",
+             "System and human system engineering testing of EPS",
+             "Relation of user perceived response time to error measurement",
+             "The generation of random binary unordered trees",
+             "The intersection graph of paths in trees",
+             "Graph minors IV Widths of trees and well quasi ordering",
+             "Graph minors A survey"]
+texts = [[word for word in normalize(document) if word not in stoplist]
+        for document in documents] #returns nested list of single-word tokens
+print(texts)
+textsbigrams = [list(bigrams(item)) for item in texts] #converts into nested list of 2-tuples with each tuple element containing a token  
+print(textsbigrams)
+tuplesstring = [[' '.join(element) for element in item] for item in textsbigrams] #converts into nested list of bigrams which can be used as corpus and vectorized in TF-IDF, LSA and other document comparison
+print(tuplesstring)
